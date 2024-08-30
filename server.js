@@ -3,8 +3,9 @@ const dotenv = require("dotenv")
 const mongoose = require("mongoose")
 
 
-//use model
+//user model
 const Users = require("./userModel")
+
 const connectDB = require("./db")
 
 dotenv.config()
@@ -22,10 +23,14 @@ const PORT = process.env.PORT || 8080
 connectDB()
 
 
+
+// checck server
 app.listen(PORT, ()=>{
     console.log(`......Server is running on port ${PORT}......`)
 })
 
+
+//welcome message
 app.get("/", (req, res)=>{
     res.status(200).json({message: "....Welcome to max server...."})
 })
