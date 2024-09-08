@@ -3,13 +3,14 @@
 const mongoose = require("mongoose")
 
 const usersSchema = new mongoose.Schema({
-    fullName: {type: String, require: true},
-    firstName: {type: String},
+    firstName: {type: String, require: true},
     lastName: {type: String},
     email: {type: String, require: true},
     age: {type: Number},
     phoneNumber: {type: Number},
-    address: {type: String}
+    address: {type: String},
+
+    walletBalance: {type: Number, default: 0}
 })
 
 const Users = new mongoose.model("user", usersSchema)

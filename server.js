@@ -1,3 +1,5 @@
+
+
 const express = require("express")
 const dotenv = require("dotenv")
 const mongoose = require("mongoose")
@@ -5,13 +7,10 @@ const mongoose = require("mongoose")
 
 //user model
 const Users = require("./userModel")
-
 const connectDB = require("./db")
 
+
 dotenv.config()
-
-
-
 const app = express()
 
 
@@ -29,22 +28,20 @@ app.listen(PORT, ()=>{
     console.log(`......Server is running on port ${PORT}......`)
 })
 
-
 //welcome message
 app.get("/", (req, res)=>{
     res.status(200).json({message: "....Welcome to max server...."})
 })
 
-
 //adds new user
 app.post("/add-user", async (req, res)=>{
 
     //destructure data gotten from request body
-    const { fullName, email, age } = req.body
+    const { firstName, lastName, email, age } = req.body
 
-    if((!fullName) || (fullName.length < 3)){
+    if((!firstName && lastName) || (firstName.length < 3)){
 
-        return res.status(400).json({message: "Please enter your fullname, and should be more than three characters"})
+        return res.status(400).json({message: "Please enter your name, and should be more than three characters"})
     }
 
     if(!email){
@@ -53,10 +50,10 @@ app.post("/add-user", async (req, res)=>{
     const alreadyExist = await Users.findOne({email})
 
     if(alreadyExist){
-        return res.status(400).json({message: "User already exist!"})
+        return res.status(400).json({message: "Email already exist!"})
     }
 
-    const newUser = new Users({ fullName, email, age })
+    const newUser = new Users({ firstName, lastName, email, age })
 
     await newUser.save()
 
@@ -67,17 +64,20 @@ app.post("/add-user", async (req, res)=>{
         })
 })
 
-
 //updates user email
 app.post("/update-email", async (req, res)=>{
 
-    const {fullName, email} = req.body
+    const {firstName, email} = req.body
 
-    if(!email || !fullName){
-        return res.status(400).json({message: "Your email and fullname are required"})
+    if(!email || !firstName){
+        return res.status(400).json({message: "Your email and firstName are required"})
     }
 
-    const oldUser = await Users.findOne({fullName})
+    const oldUser = await Users.findOne({
+
+        firstName: firstName, 
+        email: email
+    })
     
     if(!oldUser){
         return res.status(400).json({message: "user not found!"})
@@ -122,18 +122,86 @@ app.post("/add-users", async (req, res)=>{
     return res.status(200).json({message: "users added successfully", userObjects})
 })
 
-
-
-
 app.get("/user-details", async (req, res)=>{
+    
     const userDetails = await Users.find()
 
     return res.status(200).json({
+
         count: userDetails.length,
         message: "Success", userDetails
         
     })
 })
+
+// get one - find one user or product 
+app.get("/one-user/:id", async (req, res)=>{
+
+    const { id } = req.params
+
+    const user = await Users.findById(userId)
+
+    if(!user){
+
+        return res.status(404).json({message: "User not found!"})
+    }
+
+    return res.status(200).json({message: " Success!", user})
+
+})
+
+// update one 
+app.put("/edit-user", async (req, res)=>{
+
+    const { email } = req.body
+
+
+    //find the user by one (email) and use it to update the other parameter
+    const updatedUser = await Users.findByOneAndUpdate(
+
+        email,
+        {  firstName, lastName }
+    )
+
+    return res.status(200).json({
+        message: "User updated successfully!",
+        user: updatedUser
+    })
+})
+
+//delete one
+app.delete("/delete-user/:id", async (req, res)=>{
+
+    const { id } = req.params
+
+    const deletedUser = await Users.findByIdAndDelete(id)
+
+    return res.status(200).json({message: "user deleted successfully"})
+})
+
+
+app.post("/fund-wallet", async (req, res)=>{
+
+    const { email, amount } = req.body
+
+    const user = await Users.findOne({email})
+
+    if(!user){
+        return res.status(404).json({message: "account not found!"})
+    }
+    user.walletBalance += Number(amount)
+
+    await user.save()
+
+    return res.status(200).json({message: "payment successful!"})
+})
+
+
+
+
+
+
+
 
 
 
